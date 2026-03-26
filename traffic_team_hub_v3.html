@@ -1,0 +1,962 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary)}
+.app{padding:.75rem 0}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.app-title{font-size:15px;font-weight:500}
+.app-sub{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tb{padding:5px 11px;border-radius:20px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);font-size:12px;cursor:pointer;transition:all .15s}
+.tb.on{background:#534AB7;color:#fff;border-color:#534AB7}
+.panel{display:none}.panel.on{display:block}
+
+/* colors */
+:root{
+--p50:#EEEDFE;--p100:#CECBF6;--p400:#7F77DD;--p600:#534AB7;--p800:#3C3489;
+--t50:#E1F5EE;--t100:#9FE1CB;--t400:#1D9E75;--t600:#0F6E56;--t800:#085041;
+--a50:#FAEEDA;--a100:#FAC775;--a400:#BA7517;--a600:#854F0B;--a800:#633806;
+--b50:#E6F1FB;--b100:#B5D4F4;--b400:#378ADD;--b600:#185FA5;--b800:#0C447C;
+--g50:#EAF3DE;--g100:#C0DD97;--g400:#639922;--g600:#3B6D11;--g800:#27500A;
+--r50:#FCEBEB;--r100:#F7C1C1;--r400:#E24B4A;--r600:#A32D2D;--r800:#791F1F;
+--c50:#FAECE7;--c100:#F5C4B3;--c400:#D85A30;--c600:#993C1D;--c800:#712B13;
+--gr50:#F1EFE8;--gr100:#D3D1C7;--gr400:#888780;--gr600:#5F5E5A;--gr800:#444441;
+}
+
+/* layout */
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px}
+.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}
+.row4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.row5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:1rem}
+.sc{background:var(--color-background-secondary);border-radius:8px;padding:.75rem 1rem}
+.sc-l{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.sc-v{font-size:21px;font-weight:500}
+.sc-s{font-size:11px;color:var(--color-text-tertiary);margin-top:2px}
+.ct{font-size:13px;font-weight:500;margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between}
+.ct span{font-size:11px;font-weight:400;color:var(--color-text-tertiary)}
+
+/* inputs */
+.inp{width:100%;padding:6px 10px;border-radius:8px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px}
+.sel{padding:5px 8px;border-radius:8px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);font-size:12px}
+.btn{padding:5px 12px;border-radius:8px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);font-size:12px;cursor:pointer}
+.btn-pri{background:#534AB7;color:#fff;border-color:#534AB7}
+.btn-red{background:#FCEBEB;color:#A32D2D;border-color:#F7C1C1}
+.btn-green{background:#EAF3DE;color:#3B6D11;border-color:#C0DD97}
+.btn-amber{background:#FAEEDA;color:#854F0B;border-color:#FAC775}
+.btn:hover{opacity:.85}
+
+/* badges */
+.bdg{display:inline-flex;align-items:center;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap}
+.bdg-todo{background:var(--gr50);color:var(--gr800)}
+.bdg-doing{background:var(--b50);color:var(--b800)}
+.bdg-review{background:var(--a50);color:var(--a800)}
+.bdg-done{background:var(--g50);color:var(--g800)}
+.bdg-block{background:var(--r50);color:var(--r800)}
+.bdg-temp{background:var(--a50);color:var(--a800)}
+.bdg-perm{background:var(--p50);color:var(--p800)}
+
+/* member cards */
+.mc{border:0.5px solid var(--color-border-tertiary);border-radius:12px;padding:.875rem;background:var(--color-background-primary);cursor:pointer;transition:border-color .15s;position:relative}
+.mc:hover{border-color:var(--color-border-secondary)}
+.mc.sel{border-color:#534AB7;border-width:2px}
+.mc.temp-card{border-style:dashed}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.prog-wrap{height:5px;background:var(--color-background-secondary);border-radius:3px;overflow:hidden}
+.prog-fill{height:5px;border-radius:3px;transition:width .4s}
+
+/* kanban */
+.kboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.kcol{background:var(--color-background-secondary);border-radius:12px;padding:.75rem;min-height:180px}
+.kcol-h{font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.625rem;display:flex;align-items:center;justify-content:space-between}
+.kcnt{font-size:10px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:1px 6px;color:var(--color-text-tertiary)}
+.ktsk{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:8px;padding:7px 9px;margin-bottom:6px}
+.ktsk-t{font-size:12px;color:var(--color-text-primary);margin-bottom:5px;line-height:1.4}
+.ktsk-f{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.mav{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:500}
+
+/* tasks */
+.trow{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.trow:last-child{border-bottom:none}
+.tcb{width:14px;height:14px;border:0.5px solid var(--color-border-secondary);border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tcb.chk{background:#3B6D11;border-color:#3B6D11}
+.tcb.chk::after{content:'';display:block;width:7px;height:4px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translateY(-1px)}
+.tdone{text-decoration:line-through;color:var(--color-text-tertiary)}
+
+/* activity */
+.arow{display:flex;gap:8px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary);align-items:flex-start}
+.arow:last-child{border-bottom:none}
+.adot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+
+/* heatmap */
+.hmg{display:grid;grid-template-columns:repeat(13,1fr);gap:3px;margin-bottom:5px}
+.hmc{height:13px;border-radius:2px}
+.hm0{background:var(--color-background-secondary)}
+.hm1{background:#C0DD97}.hm2{background:#639922}.hm3{background:#3B6D11}
+
+/* roadmap timeline */
+.ptl{display:flex;gap:4px;margin-bottom:.75rem}
+.ptb{flex:1;border-radius:6px;padding:5px 7px;cursor:pointer;transition:opacity .15s}
+.ptb:hover{opacity:.8}
+.ptb-num{font-size:10px;font-weight:500}
+.ptb-name{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* modal overlay */
+.modal-bg{background:rgba(0,0,0,.35);border-radius:12px;padding:2rem;display:flex;align-items:flex-start;justify-content:center;min-height:320px}
+.modal{background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:12px;padding:1.25rem;width:100%;max-width:420px}
+.modal-title{font-size:14px;font-weight:500;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+.modal-close{font-size:16px;color:var(--color-text-tertiary);cursor:pointer;line-height:1}
+
+.del-confirm{background:var(--r50);border:0.5px solid var(--r100);border-radius:8px;padding:.75rem;margin-bottom:.75rem;font-size:13px;color:var(--r800)}
+.form-row{margin-bottom:.75rem}
+.form-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+.color-pick{display:flex;gap:6px;flex-wrap:wrap}
+.cp-opt{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.cp-opt.sel{border-color:var(--color-text-primary)}
+
+.sep{height:0.5px;background:var(--color-border-tertiary);margin:.75rem 0}
+.smb{padding:3px 8px;font-size:11px;border-radius:6px;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer}
+
+.inline-edit{border:none;background:transparent;font-size:inherit;font-weight:inherit;color:inherit;font-family:inherit;cursor:text;border-bottom:1px dashed var(--color-border-secondary);min-width:40px;max-width:200px;padding:0 2px}
+.inline-edit:focus{outline:none;border-bottom-color:#534AB7}
+
+.skill-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.skillp{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer}
+.skillp:hover{background:var(--r50);color:var(--r800)}
+
+canvas{display:block;width:100%!important}
+</style>
+
+<div class="app">
+<div class="topbar">
+  <div>
+    <div class="app-title" id="appTitle">Traffic Analytics — Team Hub</div>
+    <div class="app-sub" id="appSub">Loading...</div>
+  </div>
+  <div class="tabs">
+    <button class="tb on" data-t="dash">Dashboard</button>
+    <button class="tb" data-t="kanban">Kanban</button>
+    <button class="tb" data-t="members">Members</button>
+    <button class="tb" data-t="roadmap">Roadmap</button>
+    <button class="tb" data-t="log">Log</button>
+    <button class="tb" data-t="settings">Settings</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="panel on">
+  <div class="row5" id="statsRow"></div>
+  <div class="row2">
+    <div class="card">
+      <div class="ct">Member progress <span>click to view details</span></div>
+      <div id="memberBars"></div>
+    </div>
+    <div class="card">
+      <div class="ct">Activity heatmap <span>last 3 months</span></div>
+      <div class="hmg" id="heatmap"></div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:4px">
+        <span style="font-size:11px;color:var(--color-text-tertiary)">Less</span>
+        <div class="hmc hm0" style="width:12px;height:12px;border-radius:2px"></div>
+        <div class="hmc hm1" style="width:12px;height:12px;border-radius:2px"></div>
+        <div class="hmc hm2" style="width:12px;height:12px;border-radius:2px"></div>
+        <div class="hmc hm3" style="width:12px;height:12px;border-radius:2px"></div>
+        <span style="font-size:11px;color:var(--color-text-tertiary)">More</span>
+      </div>
+    </div>
+  </div>
+  <div class="row2">
+    <div class="card">
+      <div class="ct">Deliverables <span id="delivCount"></span></div>
+      <div id="delivList"></div>
+      <div style="display:flex;gap:6px;margin-top:.75rem;align-items:center">
+        <input class="inp" id="newDelTxt" placeholder="New deliverable..." style="flex:1">
+        <select class="sel" id="newDelWho"></select>
+        <button class="btn btn-pri" onclick="addDeliv()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ct">Recent activity <span id="actCount"></span></div>
+      <div id="actList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- KANBAN -->
+<div id="kanban" class="panel">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem;flex-wrap:wrap;gap:6px">
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <select class="sel" id="kfMember" onchange="renderKanban()">
+        <option value="all">All members</option>
+      </select>
+      <select class="sel" id="kfPhase" onchange="renderKanban()">
+        <option value="all">All phases</option>
+        <option value="P1">Phase 1</option><option value="P2">Phase 2</option>
+        <option value="P3">Phase 3</option><option value="P4">Phase 4</option>
+        <option value="P5">Phase 5</option><option value="P6">Phase 6</option>
+      </select>
+      <select class="sel" id="kfPriority" onchange="renderKanban()">
+        <option value="all">All priority</option>
+        <option value="high">High</option><option value="med">Medium</option><option value="low">Low</option>
+      </select>
+    </div>
+    <button class="btn btn-pri" onclick="openAddTask()">+ New task</button>
+  </div>
+  <div class="kboard" id="kboard"></div>
+</div>
+
+<!-- MEMBERS -->
+<div id="members" class="panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.875rem;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;gap:6px">
+      <button class="btn" id="filterAll" onclick="setMemberFilter('all')">All</button>
+      <button class="btn" id="filterPerm" onclick="setMemberFilter('permanent')">Permanent</button>
+      <button class="btn" id="filterTemp" onclick="setMemberFilter('temporary')">Temporary</button>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-green" onclick="openAddMember('permanent')">+ Add member</button>
+      <button class="btn btn-amber" onclick="openAddMember('temporary')">+ Add temp</button>
+    </div>
+  </div>
+  <div id="memberGrid"></div>
+  <div id="memberDetailWrap"></div>
+</div>
+
+<!-- ROADMAP -->
+<div id="roadmap" class="panel">
+  <div class="ptl" id="phaseTl"></div>
+  <div id="roadmapBody"></div>
+</div>
+
+<!-- LOG -->
+<div id="log" class="panel">
+  <div class="card">
+    <div class="ct">Activity log <span id="logTotal"></span></div>
+    <div style="display:flex;gap:6px;margin-bottom:.875rem;flex-wrap:wrap">
+      <select class="sel" id="logType" onchange="renderLog()">
+        <option value="all">All types</option>
+        <option value="commit">Commits</option><option value="pr">PRs</option>
+        <option value="task">Tasks</option><option value="member">Members</option>
+        <option value="deliverable">Deliverables</option>
+      </select>
+      <select class="sel" id="logWho" onchange="renderLog()"></select>
+    </div>
+    <div id="logList"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="panel">
+  <div class="row2">
+    <div class="card">
+      <div class="ct">Program details</div>
+      <div class="form-row"><div class="form-label">Program title</div><input class="inp" id="sTitle" value="Traffic Analytics Learning Program"></div>
+      <div class="form-row"><div class="form-label">Team name</div><input class="inp" id="sTeam" value="Traffic Analytics Team"></div>
+      <div class="form-row"><div class="form-label">GitHub repo URL</div><input class="inp" id="sRepo" placeholder="https://github.com/org/repo"></div>
+      <div class="form-row"><div class="form-label">Start date</div><input class="inp" type="date" id="sStart"></div>
+      <button class="btn btn-pri" onclick="saveSettings()" style="margin-top:4px">Save settings</button>
+    </div>
+    <div class="card">
+      <div class="ct">All members <span id="smCount"></span></div>
+      <div id="settingsMemberList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div id="modalWrap" style="display:none;margin-top:10px">
+  <div class="modal-bg">
+    <div class="modal" id="modalBox">
+      <div class="modal-title"><span id="modalTitle">Modal</span><span class="modal-close" onclick="closeModal()">×</span></div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PHASES=[
+  {id:'P1',name:'Python basics',col:'#534AB7',bg:'#EEEDFE',tc:'#3C3489',wks:[
+    {w:1,tasks:['Install Python & VS Code','Variables, data types, operators','Write first .py script','Push to GitHub']},
+    {w:2,tasks:['Loops: for, while','Functions & scope','Lists, dicts, tuples','GitHub branching & PR']},
+    {w:3,tasks:['File I/O & error handling','OOP: class, object, methods','Colab notebook setup','Code review practice']},
+    {w:4,tasks:['Mini project: traffic calculator','Write README','Peer review session','Phase 1 retrospective']}
+  ]},
+  {id:'P2',name:'Tools setup',col:'#0F6E56',bg:'#E1F5EE',tc:'#085041',wks:[
+    {w:5,tasks:['Kaggle account + dataset search','Download traffic dataset (CSV)','Pandas: read_csv, head, info, dtypes','Google Drive + Colab integration']},
+    {w:6,tasks:['Pandas: filter, groupby, agg','Handle missing values (fillna, dropna)','HuggingFace: browse Spaces + API test','Commit cleaned dataset notebook']},
+    {w:7,tasks:['Pandas: merge, pivot, apply','Parse datetime columns','Describe(), value_counts(), nunique()','Write data profile report']},
+    {w:8,tasks:['Multi-dataset join exercise','Export clean CSV to Drive','PR: dataset cleaning notebook','Phase 2 deliverable review']}
+  ]},
+  {id:'P3',name:'Data analytics',col:'#185FA5',bg:'#E6F1FB',tc:'#0C447C',wks:[
+    {w:9,tasks:['EDA: distributions, histograms, boxplots','Matplotlib: line, bar, scatter charts','Outlier detection methods','Correlation heatmap with Seaborn']},
+    {w:10,tasks:['Seaborn: pairplot, violinplot, barplot','Time-series line charts','Peak hour traffic analysis','Submit 5-chart EDA notebook PR']},
+    {w:11,tasks:['Multi-variable cross-analysis','Add annotations & titles to charts','Export publication-quality PNGs','Write narrative chart commentary']},
+    {w:12,tasks:['Final EDA report notebook','Peer review round','Merge cleaned notebook to main','Phase 3 retrospective']}
+  ]},
+  {id:'P4',name:'Dashboards',col:'#854F0B',bg:'#FAEEDA',tc:'#633806',wks:[
+    {w:13,tasks:['Plotly: interactive bar, line, scatter','Streamlit: st.write, st.plotly_chart','Slider + selectbox widgets','Deploy app to Streamlit Cloud']},
+    {w:14,tasks:['Multi-page Streamlit app structure','CSV upload + dynamic chart refresh','Custom CSS theming in Streamlit','Dashboard PR with live URL']},
+    {w:15,tasks:['Power BI: connect to CSV source','Build basic traffic report in Power BI','Publish + share Power BI report','Compare Streamlit vs Power BI writeup']},
+    {w:16,tasks:['Final dashboard polish + UX review','Record 2-min demo video','Peer review dashboard','Phase 4 deliverable submit']}
+  ]},
+  {id:'P5',name:'Machine learning',col:'#993C1D',bg:'#FAECE7',tc:'#712B13',wks:[
+    {w:17,tasks:['Scikit-learn pipeline intro','Train/test split + cross-validation','Linear regression: travel time model','Evaluate: MAE, RMSE, R²']},
+    {w:18,tasks:['Classification: congestion level (Low/Med/High)','Logistic regression basics','Confusion matrix + precision/recall/F1','Feature importance visualisation']},
+    {w:19,tasks:['CO2 emission estimation model','Feature engineering: lag, rolling avg','Compare models side-by-side table','Save model with joblib / pickle']},
+    {w:20,tasks:['Hyperparameter tuning (GridSearchCV)','Load saved model + run predictions','Upload model card to HuggingFace','End-to-end ML notebook PR']},
+    {w:21,tasks:['Ensemble method intro (Random Forest)','Model evaluation final report','Peer review all models','Phase 5 retrospective']}
+  ]},
+  {id:'P6',name:'Final project',col:'#3B6D11',bg:'#EAF3DE',tc:'#27500A',wks:[
+    {w:22,tasks:['Integrate ML model into Streamlit app','Live CSV upload → clean → predict flow','Congestion alert threshold logic','End-to-end smoke testing']},
+    {w:23,tasks:['Polish UI: error handling + loading states','Write full documentation (README + wiki)','Record 3-min project demo video','Deploy final app to public URL']},
+    {w:24,tasks:['Pin project repo + write GitHub description','Add live demo badge to README','Draft LinkedIn showcase post','Team retrospective & celebration']}
+  ]}
+];
+
+const AV_SCHEMES=[
+  {cls:'av-p',bg:'#EEEDFE',col:'#534AB7',tc:'#3C3489'},
+  {cls:'av-t',bg:'#E1F5EE',col:'#0F6E56',tc:'#085041'},
+  {cls:'av-c',bg:'#FAECE7',col:'#993C1D',tc:'#712B13'},
+  {cls:'av-b',bg:'#E6F1FB',col:'#185FA5',tc:'#0C447C'},
+  {cls:'av-g',bg:'#EAF3DE',col:'#3B6D11',tc:'#27500A'},
+  {cls:'av-a',bg:'#FAEEDA',col:'#854F0B',tc:'#633806'},
+];
+
+let ST={
+  members:[
+    {id:'m1',name:'Aryan A.',initials:'AA',scheme:0,type:'permanent',phase:'P1',week:3,pct:65,streak:5,commits:12,prs:3,skills:['Python','Git','Colab'],note:'Strong in Python fundamentals'},
+    {id:'m2',name:'Bhanu S.',initials:'BS',scheme:1,type:'permanent',phase:'P1',week:2,pct:40,streak:3,commits:7,prs:1,skills:['Python','Kaggle'],note:'Needs support with Git branching'},
+    {id:'m3',name:'Chetan K.',initials:'CK',scheme:2,type:'permanent',phase:'P1',week:3,pct:58,streak:4,commits:9,prs:2,skills:['Python','Git'],note:'Good progress, exploring Colab'},
+  ],
+  tasks:[
+    {id:'t1',title:'Python calculator project',desc:'Week 4 mini project',who:'m1',phase:'P1',status:'doing',priority:'high'},
+    {id:'t2',title:'GitHub profile README',desc:'Personal intro page',who:'m3',phase:'P1',status:'todo',priority:'med'},
+    {id:'t3',title:'Python basics exercises',desc:'Loops and functions',who:'m2',phase:'P1',status:'review',priority:'high'},
+    {id:'t4',title:'Colab notebook template',desc:'Standard header + sections',who:'m1',phase:'P1',status:'todo',priority:'low'},
+    {id:'t5',title:'Environment setup guide',desc:'Python + VS Code steps',who:'all',phase:'P1',status:'done',priority:'high'},
+    {id:'t6',title:'Git branching practice',desc:'Feature branch + PR flow',who:'m2',phase:'P1',status:'doing',priority:'med'},
+    {id:'t7',title:'OOP: Vehicle class exercise',desc:'Phase 1 OOP task',who:'m3',phase:'P1',status:'doing',priority:'med'},
+    {id:'t8',title:'Phase 1 retrospective doc',desc:'What went well / improve',who:'all',phase:'P1',status:'todo',priority:'low'},
+  ],
+  deliverables:[
+    {id:'d1',text:'Python Week 3 OOP mini project',who:'m1',status:'doing'},
+    {id:'d2',text:'Colab setup guide written',who:'m2',status:'done'},
+    {id:'d3',text:'GitHub profile README live',who:'m3',status:'todo'},
+    {id:'d4',text:'Phase 1 PR template tested',who:'all',status:'done'},
+  ],
+  log:[
+    {type:'commit',text:'Add pandas intro notebook draft',who:'m1',time:'2h ago',col:'#534AB7'},
+    {type:'pr',text:'Python basics exercises — PR #3 opened',who:'m2',time:'5h ago',col:'#0F6E56'},
+    {type:'commit',text:'Fix loop exercise in week02',who:'m3',time:'6h ago',col:'#993C1D'},
+    {type:'task',text:'Marked "Environment setup guide" as done',who:'all',time:'1d ago',col:'#185FA5'},
+    {type:'commit',text:'Add Kaggle dataset notes placeholder',who:'m2',time:'1d ago',col:'#0F6E56'},
+    {type:'deliverable',text:'Colab setup guide marked complete',who:'m2',time:'2d ago',col:'#854F0B'},
+    {type:'commit',text:'Init repo structure + .gitignore',who:'m1',time:'3d ago',col:'#534AB7'},
+  ],
+  checked:{},
+  selMember:null,
+  selPhase:'P1',
+  memberFilter:'all',
+  newMemberForm:{name:'',initials:'',scheme:0,type:'permanent'},
+  settings:{title:'Traffic Analytics Learning Program',team:'Traffic Analytics Team',repo:'',start:''}
+};
+
+const SC={todo:'bdg-todo',doing:'bdg-doing',review:'bdg-review',done:'bdg-done',block:'bdg-block'};
+const SL={todo:'To do',doing:'In progress',review:'In review',done:'Done',block:'Blocked'};
+const SCYCLE={todo:'doing',doing:'review',review:'done',done:'todo'};
+const PRIO_COL={high:'#A32D2D',med:'#854F0B',low:'#3B6D11'};
+
+function getMember(id){return ST.members.find(m=>m.id===id)}
+function getScheme(i){return AV_SCHEMES[i%AV_SCHEMES.length]}
+function getPhase(id){return PHASES.find(p=>p.id===id)}
+function memberName(id){if(id==='all')return 'All';const m=getMember(id);return m?m.name:'—'}
+function memberInitials(id){if(id==='all')return 'ALL';const m=getMember(id);return m?m.initials:'?'}
+function memberScheme(id){const m=getMember(id);return m?getScheme(m.scheme):AV_SCHEMES[0]}
+
+function logIt(type,text,who,col){
+  const cols={commit:'#534AB7',pr:'#0F6E56',task:'#185FA5',member:'#854F0B',deliverable:'#0F6E56'};
+  ST.log.unshift({type,text,who:who||'system',time:'just now',col:col||cols[type]||'#888780'});
+  renderAct();renderLog();
+}
+
+function now(){
+  const d=new Date();
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return `${days[d.getDay()]}, ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+}
+
+// ---- STATS ----
+function renderStats(){
+  const total=ST.tasks.length;
+  const done=ST.tasks.filter(t=>t.status==='done').length;
+  const doing=ST.tasks.filter(t=>t.status==='doing').length;
+  const perm=ST.members.filter(m=>m.type==='permanent').length;
+  const temp=ST.members.filter(m=>m.type==='temporary').length;
+  const commits=ST.members.reduce((a,m)=>a+m.commits,0);
+  document.getElementById('statsRow').innerHTML=`
+    <div class="sc"><div class="sc-l">Tasks done</div><div class="sc-v" style="color:#3B6D11">${done}/${total}</div><div class="sc-s">${total?Math.round(done/total*100):0}% complete</div></div>
+    <div class="sc"><div class="sc-l">In progress</div><div class="sc-v" style="color:#854F0B">${doing}</div><div class="sc-s">active tasks</div></div>
+    <div class="sc"><div class="sc-l">Team size</div><div class="sc-v">${perm} <span style="font-size:13px;color:var(--color-text-tertiary)">+${temp} temp</span></div><div class="sc-s">members</div></div>
+    <div class="sc"><div class="sc-l">Total commits</div><div class="sc-v">${commits}</div><div class="sc-s">across team</div></div>
+    <div class="sc"><div class="sc-l">Deliverables</div><div class="sc-v" style="color:#534AB7">${ST.deliverables.filter(d=>d.status==='done').length}/${ST.deliverables.length}</div><div class="sc-s">this week</div></div>
+  `;
+}
+
+// ---- MEMBER BARS ----
+function renderMemberBars(){
+  document.getElementById('memberBars').innerHTML=ST.members.map(m=>{
+    const sc=getScheme(m.scheme);
+    return `<div style="margin-bottom:.75rem;cursor:pointer" onclick="switchTab('members');setSelMember('${m.id}')">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+        <div class="av" style="width:26px;height:26px;font-size:10px;background:${sc.bg};color:${sc.col}">${m.initials}</div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between">
+            <span style="font-size:12px;font-weight:500">${m.name}</span>
+            <span style="font-size:11px;color:var(--color-text-tertiary)">${m.pct}%</span>
+          </div>
+          <div style="font-size:10px;color:var(--color-text-tertiary)">${getPhase(m.phase)?.name||m.phase} · W${m.week} ${m.type==='temporary'?'· <span style="color:#854F0B">temp</span>':''}</div>
+        </div>
+      </div>
+      <div class="prog-wrap"><div class="prog-fill" style="width:${m.pct}%;background:${sc.col}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+// ---- HEATMAP ----
+function renderHeatmap(){
+  document.getElementById('heatmap').innerHTML=Array.from({length:104},(_,i)=>{
+    const v=Math.random()<.3?0:Math.random()<.4?1:Math.random()<.6?2:3;
+    return `<div class="hmc hm${v}" title="Activity"></div>`;
+  }).join('');
+}
+
+// ---- DELIVERABLES ----
+function populateWhoSelects(){
+  ['newDelWho','logWho','kfMember'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    const cur=el.value;
+    if(id==='logWho'){el.innerHTML='<option value="all">All members</option>';}
+    else if(id==='kfMember'){el.innerHTML='<option value="all">All members</option>';}
+    else{el.innerHTML='';}
+    ST.members.forEach(m=>{
+      const o=document.createElement('option');
+      o.value=m.id;o.textContent=m.name;
+      el.appendChild(o);
+    });
+    if(id==='newDelWho'){
+      const o=document.createElement('option');o.value='all';o.textContent='All team';
+      el.insertBefore(o,el.firstChild);
+    }
+    if(cur)el.value=cur;
+  });
+  // settings member list
+  renderSettingsMembers();
+}
+
+function renderDeliverables(){
+  document.getElementById('delivCount').textContent=`${ST.deliverables.filter(d=>d.status==='done').length}/${ST.deliverables.length} done`;
+  document.getElementById('delivList').innerHTML=ST.deliverables.map(d=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <div style="flex:1;font-size:12px">${d.text}</div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);min-width:50px">${memberName(d.who)}</div>
+      <span class="bdg ${SC[d.status]}" style="cursor:pointer" onclick="cycleDeliv('${d.id}')">${SL[d.status]}</span>
+      <span class="smb btn-red" onclick="removeDeliv('${d.id}')">×</span>
+    </div>
+  `).join('');
+}
+
+function cycleDeliv(id){
+  const d=ST.deliverables.find(x=>x.id===id);
+  if(d){d.status=SCYCLE[d.status]||'todo';logIt('deliverable',`"${d.text}" → ${SL[d.status]}`,d.who);}
+  renderDeliverables();renderStats();
+}
+
+function removeDeliv(id){
+  const d=ST.deliverables.find(x=>x.id===id);
+  ST.deliverables=ST.deliverables.filter(x=>x.id!==id);
+  if(d)logIt('deliverable',`Deliverable removed: "${d.text}"`,d.who);
+  renderDeliverables();renderStats();
+}
+
+function addDeliv(){
+  const txt=document.getElementById('newDelTxt').value.trim();
+  const who=document.getElementById('newDelWho').value;
+  if(!txt)return;
+  ST.deliverables.push({id:'d'+Date.now(),text:txt,who,status:'todo'});
+  document.getElementById('newDelTxt').value='';
+  logIt('deliverable','New deliverable: '+txt,who);
+  renderDeliverables();renderStats();
+}
+
+// ---- ACTIVITY ----
+function renderAct(){
+  document.getElementById('actCount').textContent=ST.log.length+' entries';
+  document.getElementById('actList').innerHTML=ST.log.slice(0,7).map(a=>`
+    <div class="arow">
+      <div class="adot" style="background:${a.col}"></div>
+      <div style="flex:1;font-size:12px">${a.text}</div>
+      <div style="font-size:10px;color:var(--color-text-tertiary);min-width:50px;text-align:right">${a.time}</div>
+    </div>
+  `).join('');
+}
+
+// ---- KANBAN ----
+function renderKanban(){
+  const mf=document.getElementById('kfMember')?.value||'all';
+  const pf=document.getElementById('kfPhase')?.value||'all';
+  const prf=document.getElementById('kfPriority')?.value||'all';
+  const cols=['todo','doing','review','done','block'];
+  const colNames={todo:'To do',doing:'In progress',review:'In review',done:'Done',block:'Blocked'};
+  let tasks=ST.tasks.filter(t=>{
+    const mok=mf==='all'||t.who===mf||t.who==='all';
+    const pok=pf==='all'||t.phase===pf;
+    const prok=prf==='all'||t.priority===prf;
+    return mok&&pok&&prok;
+  });
+  document.getElementById('kboard').innerHTML=cols.map(col=>{
+    const ct=tasks.filter(t=>t.status===col);
+    return `<div class="kcol">
+      <div class="kcol-h">${colNames[col]}<span class="kcnt">${ct.length}</span></div>
+      ${ct.map(t=>{
+        const sc=t.who==='all'?AV_SCHEMES[0]:memberScheme(t.who);
+        const ini=t.who==='all'?'ALL':memberInitials(t.who);
+        return `<div class="ktsk">
+          <div class="ktsk-t">${t.title}</div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:5px">${t.desc}</div>
+          <div class="ktsk-f">
+            <span class="bdg bdg-${t.phase.toLowerCase()}" style="background:${getPhase(t.phase)?.bg||'#eee'};color:${getPhase(t.phase)?.tc||'#333'}">${t.phase}</span>
+            <span style="width:6px;height:6px;border-radius:50%;background:${PRIO_COL[t.priority]||'#888'};display:inline-block"></span>
+            <div class="mav" style="background:${sc.bg};color:${sc.col}">${ini}</div>
+            <span style="font-size:10px;color:var(--color-text-tertiary);flex:1">${memberName(t.who)}</span>
+            <span class="smb" onclick="cycleTask('${t.id}')">→</span>
+            <span class="smb btn-red" onclick="deleteTask('${t.id}')">×</span>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function cycleTask(id){
+  const t=ST.tasks.find(x=>x.id===id);
+  if(t){t.status=SCYCLE[t.status]||'todo';logIt('task',`"${t.title}" → ${SL[t.status]}`,t.who);}
+  renderKanban();renderStats();
+}
+
+function deleteTask(id){
+  const t=ST.tasks.find(x=>x.id===id);
+  ST.tasks=ST.tasks.filter(x=>x.id!==id);
+  if(t)logIt('task',`Task deleted: "${t.title}"`,t.who);
+  renderKanban();renderStats();
+}
+
+function openAddTask(){
+  document.getElementById('modalTitle').textContent='New task';
+  const whoOpts=ST.members.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  document.getElementById('modalBody').innerHTML=`
+    <div class="form-row"><div class="form-label">Title</div><input class="inp" id="nt_title" placeholder="Task title"></div>
+    <div class="form-row"><div class="form-label">Description</div><input class="inp" id="nt_desc" placeholder="Short description"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="form-row"><div class="form-label">Assign to</div>
+        <select class="inp" id="nt_who"><option value="all">All team</option>${whoOpts}</select></div>
+      <div class="form-row"><div class="form-label">Phase</div>
+        <select class="inp" id="nt_phase">${PHASES.map(p=>`<option value="${p.id}">${p.id}: ${p.name}</option>`).join('')}</select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="form-row"><div class="form-label">Status</div>
+        <select class="inp" id="nt_status"><option value="todo">To do</option><option value="doing">In progress</option><option value="review">In review</option><option value="done">Done</option></select></div>
+      <div class="form-row"><div class="form-label">Priority</div>
+        <select class="inp" id="nt_prio"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:.5rem">
+      <button class="btn btn-pri" onclick="confirmAddTask()">Create task</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  document.getElementById('modalWrap').style.display='block';
+}
+
+function confirmAddTask(){
+  const title=document.getElementById('nt_title').value.trim();
+  if(!title)return;
+  const task={id:'t'+Date.now(),title,desc:document.getElementById('nt_desc').value,
+    who:document.getElementById('nt_who').value,phase:document.getElementById('nt_phase').value,
+    status:document.getElementById('nt_status').value,priority:document.getElementById('nt_prio').value};
+  ST.tasks.push(task);
+  logIt('task',`New task created: "${title}"`,task.who);
+  closeModal();renderKanban();renderStats();
+}
+
+// ---- MEMBERS ----
+function setMemberFilter(f){
+  ST.memberFilter=f;
+  ['filterAll','filterPerm','filterTemp'].forEach(id=>document.getElementById(id).classList.remove('btn-pri'));
+  const btnMap={all:'filterAll',permanent:'filterPerm',temporary:'filterTemp'};
+  document.getElementById(btnMap[f]).classList.add('btn-pri');
+  renderMemberGrid();
+}
+
+function renderMemberGrid(){
+  const filtered=ST.memberFilter==='all'?ST.members:ST.members.filter(m=>m.type===ST.memberFilter);
+  document.getElementById('memberGrid').innerHTML=`<div class="row3">${filtered.map(m=>{
+    const sc=getScheme(m.scheme);
+    const myTasks=ST.tasks.filter(t=>t.who===m.id);
+    const doneTasks=myTasks.filter(t=>t.status==='done').length;
+    return `<div class="mc ${m.type==='temporary'?'temp-card':''} ${ST.selMember===m.id?'sel':''}" onclick="setSelMember('${m.id}')">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="av" style="width:38px;height:38px;font-size:13px;background:${sc.bg};color:${sc.col}">${m.initials}</div>
+          <div>
+            <div style="font-size:13px;font-weight:500">${m.name}</div>
+            <div style="font-size:11px;color:var(--color-text-tertiary)">${getPhase(m.phase)?.name||m.phase} · W${m.week}</div>
+          </div>
+        </div>
+        <span class="bdg ${m.type==='temporary'?'bdg-temp':'bdg-perm'}">${m.type==='temporary'?'temp':'perm'}</span>
+      </div>
+      <div class="prog-wrap" style="margin-bottom:3px"><div class="prog-fill" style="width:${m.pct}%;background:${sc.col}"></div></div>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:.625rem">${m.pct}% · ${m.streak}-day streak</div>
+      <div style="display:flex;gap:10px;font-size:11px;color:var(--color-text-secondary);margin-bottom:.625rem">
+        <span>${m.commits} commits</span><span>${m.prs} PRs</span><span>${doneTasks}/${myTasks.length} tasks</span>
+      </div>
+      <div class="skill-wrap">${m.skills.map(s=>`<span class="skillp" onclick="event.stopPropagation();removeSkill('${m.id}','${s}')">${s} ×</span>`).join('')}
+        <span class="skillp" style="background:var(--p50);color:var(--p800)" onclick="event.stopPropagation();addSkillPrompt('${m.id}')">+ skill</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:.75rem">
+        <button class="smb" onclick="event.stopPropagation();openEditMember('${m.id}')">Edit</button>
+        <button class="smb btn-red" onclick="event.stopPropagation();confirmDeleteMember('${m.id}')">Delete</button>
+        ${m.type==='temporary'?`<button class="smb btn-green" onclick="event.stopPropagation();promoteMember('${m.id}')">Make perm</button>`:''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+  renderMemberDetail();
+}
+
+function setSelMember(id){
+  ST.selMember=ST.selMember===id?null:id;
+  renderMemberGrid();
+}
+
+function renderMemberDetail(){
+  const wrap=document.getElementById('memberDetailWrap');
+  if(!ST.selMember){wrap.innerHTML='';return;}
+  const m=getMember(ST.selMember);
+  if(!m){wrap.innerHTML='';return;}
+  const sc=getScheme(m.scheme);
+  const ph=getPhase(m.phase);
+  const weekData=ph?ph.wks.find(w=>w.w===m.week):null;
+  const myTasks=ST.tasks.filter(t=>t.who===m.id||t.who==='all');
+  wrap.innerHTML=`<div class="card" style="margin-top:10px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem">
+      <div class="av" style="width:44px;height:44px;font-size:15px;background:${sc.bg};color:${sc.col}">${m.initials}</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:500">${m.name} <span class="bdg ${m.type==='temporary'?'bdg-temp':'bdg-perm'}">${m.type}</span></div>
+        <div style="font-size:12px;color:var(--color-text-secondary)">${ph?.name||m.phase} · Week ${m.week} · ${m.pct}% complete · ${m.streak}-day streak</div>
+        ${m.note?`<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:2px;font-style:italic">${m.note}</div>`:''}
+      </div>
+      <div style="display:flex;gap:6px">
+        <div class="sc" style="text-align:center;min-width:55px"><div class="sc-l">Commits</div><div style="font-size:16px;font-weight:500">${m.commits}</div></div>
+        <div class="sc" style="text-align:center;min-width:55px"><div class="sc-l">PRs</div><div style="font-size:16px;font-weight:500">${m.prs}</div></div>
+      </div>
+    </div>
+    <div class="row2">
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.5rem">Week ${m.week} tasks</div>
+        ${weekData?weekData.tasks.map((t,i)=>{
+          const k=m.id+'_w_'+m.week+'_'+i;
+          return `<div class="trow"><div class="tcb ${ST.checked[k]?'chk':''}" onclick="toggleCheck('${k}','${m.id}')"></div>
+            <span style="font-size:12px" class="${ST.checked[k]?'tdone':''}">${t}</span></div>`;
+        }).join(''):`<div style="font-size:12px;color:var(--color-text-tertiary)">No data for week ${m.week}</div>`}
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:.5rem">Assigned tasks</div>
+        ${myTasks.map(t=>`<div class="trow">
+          <span class="bdg ${SC[t.status]}">${SL[t.status]}</span>
+          <span style="font-size:12px;flex:1;padding-left:4px">${t.title}</span>
+          <span style="width:6px;height:6px;border-radius:50%;background:${PRIO_COL[t.priority]||'#888'};display:inline-block"></span>
+        </div>`).join('')||'<div style="font-size:12px;color:var(--color-text-tertiary)">No tasks assigned</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleCheck(k,mid){
+  ST.checked[k]=!ST.checked[k];
+  const m=getMember(mid);
+  logIt('task',`Task ${ST.checked[k]?'checked':'unchecked'}`,mid);
+  const myChecked=Object.keys(ST.checked).filter(x=>x.startsWith(mid+'_w_')&&ST.checked[x]).length;
+  const ph=getPhase(m.phase);
+  const total=ph?ph.wks.reduce((a,w)=>a+w.tasks.length,0):1;
+  m.pct=Math.min(100,Math.round(myChecked/total*100));
+  renderMemberDetail();renderMemberBars();renderStats();renderMemberGrid();
+}
+
+function removeSkill(mid,skill){
+  const m=getMember(mid);
+  if(m){m.skills=m.skills.filter(s=>s!==skill);logIt('member',`Skill "${skill}" removed from ${m.name}`,mid);}
+  renderMemberGrid();
+}
+
+function addSkillPrompt(mid){
+  document.getElementById('modalTitle').textContent='Add skill';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="form-row"><div class="form-label">Skill name</div><input class="inp" id="newSkillInp" placeholder="e.g. Pandas, Streamlit"></div>
+    <div style="display:flex;gap:6px;margin-top:.5rem">
+      <button class="btn btn-pri" onclick="confirmAddSkill('${mid}')">Add skill</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  document.getElementById('modalWrap').style.display='block';
+}
+
+function confirmAddSkill(mid){
+  const s=document.getElementById('newSkillInp').value.trim();
+  const m=getMember(mid);
+  if(s&&m&&!m.skills.includes(s)){m.skills.push(s);logIt('member',`Skill "${s}" added to ${m.name}`,mid);}
+  closeModal();renderMemberGrid();
+}
+
+function promoteMember(mid){
+  const m=getMember(mid);
+  if(m){m.type='permanent';logIt('member',`${m.name} promoted to permanent member`,mid);}
+  renderMemberGrid();renderStats();populateWhoSelects();
+}
+
+function openAddMember(type){
+  document.getElementById('modalTitle').textContent=type==='temporary'?'Add temporary member':'Add permanent member';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="form-row"><div class="form-label">Full name</div><input class="inp" id="am_name" placeholder="e.g. Priya M." oninput="autoInitials()"></div>
+    <div class="form-row"><div class="form-label">Initials (auto-filled)</div><input class="inp" id="am_ini" placeholder="e.g. PM" maxlength="3"></div>
+    <div class="form-row"><div class="form-label">Avatar colour</div>
+      <div class="color-pick" id="amColPick">${AV_SCHEMES.map((s,i)=>`<div class="cp-opt ${i===0?'sel':''}" style="background:${s.bg};border:2px solid ${i===0?s.col:'transparent'}" onclick="pickAVColor(${i})" title="${s.col}"></div>`).join('')}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="form-row"><div class="form-label">Starting phase</div>
+        <select class="inp" id="am_phase">${PHASES.map(p=>`<option value="${p.id}">${p.id}: ${p.name}</option>`).join('')}</select></div>
+      <div class="form-row"><div class="form-label">Starting week</div>
+        <input class="inp" type="number" id="am_week" value="1" min="1" max="24"></div>
+    </div>
+    ${type==='temporary'?`<div class="form-row"><div class="form-label">Role / reason for joining</div><input class="inp" id="am_note" placeholder="e.g. Intern for Phase 3"></div>`:''}
+    <div style="display:flex;gap:8px;margin-top:.5rem">
+      <button class="btn btn-pri" onclick="confirmAddMember('${type}')">Add member</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  window._selScheme=0;
+  document.getElementById('modalWrap').style.display='block';
+}
+
+function autoInitials(){
+  const name=document.getElementById('am_name').value.trim();
+  const ini=name.split(' ').map(w=>w[0]?.toUpperCase()||'').join('').slice(0,3);
+  document.getElementById('am_ini').value=ini;
+}
+
+function pickAVColor(i){
+  window._selScheme=i;
+  document.querySelectorAll('.cp-opt').forEach((el,j)=>{
+    const sc=AV_SCHEMES[j];
+    el.classList.toggle('sel',j===i);
+    el.style.border=`2px solid ${j===i?sc.col:'transparent'}`;
+  });
+}
+
+function confirmAddMember(type){
+  const name=document.getElementById('am_name').value.trim();
+  if(!name)return;
+  const ini=document.getElementById('am_ini').value.trim()||name.slice(0,2).toUpperCase();
+  const scheme=window._selScheme||0;
+  const phase=document.getElementById('am_phase').value;
+  const week=parseInt(document.getElementById('am_week').value)||1;
+  const note=document.getElementById('am_note')?.value||'';
+  const m={id:'m'+Date.now(),name,initials:ini,scheme,type,phase,week,pct:0,streak:0,commits:0,prs:0,skills:[],note};
+  ST.members.push(m);
+  logIt('member',`New ${type} member added: ${name}`,'system');
+  closeModal();populateWhoSelects();renderMemberGrid();renderMemberBars();renderStats();renderSettingsMembers();
+}
+
+function openEditMember(mid){
+  const m=getMember(mid);if(!m)return;
+  document.getElementById('modalTitle').textContent='Edit member';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="form-row"><div class="form-label">Full name</div><input class="inp" id="em_name" value="${m.name}"></div>
+    <div class="form-row"><div class="form-label">Initials</div><input class="inp" id="em_ini" value="${m.initials}" maxlength="3"></div>
+    <div class="form-row"><div class="form-label">Avatar colour</div>
+      <div class="color-pick" id="emColPick">${AV_SCHEMES.map((s,i)=>`<div class="cp-opt ${i===m.scheme?'sel':''}" style="background:${s.bg};border:2px solid ${i===m.scheme?s.col:'transparent'}" onclick="pickAVColor(${i})" title="${s.col}"></div>`).join('')}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div class="form-row"><div class="form-label">Phase</div>
+        <select class="inp" id="em_phase">${PHASES.map(p=>`<option value="${p.id}" ${m.phase===p.id?'selected':''}>${p.id}</option>`).join('')}</select></div>
+      <div class="form-row"><div class="form-label">Week</div>
+        <input class="inp" type="number" id="em_week" value="${m.week}" min="1" max="24"></div>
+      <div class="form-row"><div class="form-label">Progress %</div>
+        <input class="inp" type="number" id="em_pct" value="${m.pct}" min="0" max="100"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="form-row"><div class="form-label">Commits</div><input class="inp" type="number" id="em_commits" value="${m.commits}" min="0"></div>
+      <div class="form-row"><div class="form-label">PRs</div><input class="inp" type="number" id="em_prs" value="${m.prs}" min="0"></div>
+    </div>
+    <div class="form-row"><div class="form-label">Note / role</div><input class="inp" id="em_note" value="${m.note||''}"></div>
+    <div class="form-row"><div class="form-label">Member type</div>
+      <select class="inp" id="em_type"><option value="permanent" ${m.type==='permanent'?'selected':''}>Permanent</option><option value="temporary" ${m.type==='temporary'?'selected':''}>Temporary</option></select></div>
+    <div style="display:flex;gap:8px;margin-top:.5rem">
+      <button class="btn btn-pri" onclick="confirmEditMember('${mid}')">Save changes</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  window._selScheme=m.scheme;
+  document.getElementById('modalWrap').style.display='block';
+}
+
+function confirmEditMember(mid){
+  const m=getMember(mid);if(!m)return;
+  m.name=document.getElementById('em_name').value.trim()||m.name;
+  m.initials=document.getElementById('em_ini').value.trim()||m.initials;
+  m.scheme=window._selScheme||m.scheme;
+  m.phase=document.getElementById('em_phase').value;
+  m.week=parseInt(document.getElementById('em_week').value)||m.week;
+  m.pct=Math.max(0,Math.min(100,parseInt(document.getElementById('em_pct').value)||0));
+  m.commits=parseInt(document.getElementById('em_commits').value)||0;
+  m.prs=parseInt(document.getElementById('em_prs').value)||0;
+  m.note=document.getElementById('em_note').value;
+  m.type=document.getElementById('em_type').value;
+  logIt('member',`${m.name} profile updated`,mid);
+  closeModal();renderMemberGrid();renderMemberBars();renderStats();populateWhoSelects();renderSettingsMembers();
+}
+
+function confirmDeleteMember(mid){
+  const m=getMember(mid);if(!m)return;
+  document.getElementById('modalTitle').textContent='Delete member';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="del-confirm">You are about to permanently delete <strong>${m.name}</strong>. All their tasks will remain but unassigned.</div>
+    <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:.875rem">This cannot be undone. Are you sure?</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-red" onclick="doDeleteMember('${mid}')">Yes, delete</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  `;
+  document.getElementById('modalWrap').style.display='block';
+}
+
+function doDeleteMember(mid){
+  const m=getMember(mid);
+  const name=m?m.name:'member';
+  ST.members=ST.members.filter(x=>x.id!==mid);
+  ST.tasks.forEach(t=>{if(t.who===mid)t.who='all';});
+  ST.deliverables.forEach(d=>{if(d.who===mid)d.who='all';});
+  if(ST.selMember===mid)ST.selMember=null;
+  logIt('member',`${name} removed from team`,'system');
+  closeModal();populateWhoSelects();renderMemberGrid();renderMemberBars();renderStats();renderSettingsMembers();renderKanban();renderDeliverables();
+}
+
+// ---- ROADMAP ----
+function renderPhaseTl(){
+  document.getElementById('phaseTl').innerHTML=PHASES.map(p=>`
+    <div class="ptb" style="background:${p.bg}" onclick="selPhase('${p.id}')">
+      <div class="ptb-num" style="color:${p.tc}">${p.id}</div>
+      <div class="ptb-name" style="color:${p.col}">${p.name}</div>
+    </div>
+  `).join('');
+}
+
+function selPhase(id){ST.selPhase=id;renderRoadmap();}
+
+function renderRoadmap(){
+  const p=getPhase(ST.selPhase);if(!p)return;
+  document.getElementById('roadmapBody').innerHTML=`
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:.875rem">
+        <div style="width:10px;height:10px;border-radius:50%;background:${p.col}"></div>
+        <div style="font-size:15px;font-weight:500">${p.id}: ${p.name}</div>
+        <span style="font-size:11px;color:var(--color-text-tertiary)">${p.wks.length} weeks</span>
+      </div>
+      ${p.wks.map(w=>`
+        <div style="display:flex;gap:8px;margin-bottom:.75rem;align-items:flex-start">
+          <div style="font-size:11px;color:var(--color-text-tertiary);min-width:30px;padding-top:3px">W${w.w}</div>
+          <div style="flex:1">
+            ${w.tasks.map((t,i)=>{
+              const k='rm_'+p.id+'_'+w.w+'_'+i;
+              return `<div class="trow"><div class="tcb ${ST.checked[k]?'chk':''}" onclick="rmCheck('${k}')"></div>
+                <span style="font-size:12px" class="${ST.checked[k]?'tdone':''}">${t}</span></div>`;
+            }).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function rmCheck(k){
+  ST.checked[k]=!ST.checked[k];
+  logIt('task',`Roadmap task ${ST.checked[k]?'checked':'unchecked'}`,ST.members[0]?.id||'system');
+  renderRoadmap();
+}
+
+// ---- LOG ----
+function renderLog(){
+  const tf=document.getElementById('logType')?.value||'all';
+  const wf=document.getElementById('logWho')?.value||'all';
+  const f=ST.log.filter(a=>(tf==='all'||a.type===tf)&&(wf==='all'||a.who===wf||a.who==='all'||a.who==='system'));
+  document.getElementById('logTotal').textContent=f.length+' entries';
+  document.getElementById('logList').innerHTML=f.map(a=>`
+    <div class="arow">
+      <div class="adot" style="background:${a.col}"></div>
+      <div style="flex:1;font-size:12px"><strong>${a.who==='system'?'System':memberName(a.who)}</strong> — ${a.text}</div>
+      <div style="font-size:10px;color:var(--color-text-tertiary);min-width:55px;text-align:right">${a.time}</div>
+    </div>
+  `).join('');
+}
+
+// ---- SETTINGS ----
+function renderSettingsMembers(){
+  const el=document.getElementById('settingsMemberList');
+  if(!el)return;
+  document.getElementById('smCount').textContent=`${ST.members.length} total`;
+  el.innerHTML=ST.members.map(m=>{
+    const sc=getScheme(m.scheme);
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary)">
+      <div class="av" style="width:28px;height:28px;font-size:10px;background:${sc.bg};color:${sc.col}">${m.initials}</div>
+      <div style="flex:1;font-size:13px">${m.name}</div>
+      <span class="bdg ${m.type==='temporary'?'bdg-temp':'bdg-perm'}">${m.type}</span>
+      <button class="smb" onclick="openEditMember('${m.id}')">Edit</button>
+      <button class="smb btn-red" onclick="confirmDeleteMember('${m.id}')">Delete</button>
+    </div>`;
+  }).join('');
+}
+
+function saveSettings(){
+  ST.settings.title=document.getElementById('sTitle').value;
+  ST.settings.team=document.getElementById('sTeam').value;
+  ST.settings.repo=document.getElementById('sRepo').value;
+  document.getElementById('appTitle').textContent=ST.settings.team+' — Hub';
+  logIt('member','Settings saved','system');
+  const btn=event.target;btn.textContent='Saved!';
+  setTimeout(()=>btn.textContent='Save settings',1500);
+}
+
+function closeModal(){document.getElementById('modalWrap').style.display='none';}
+
+// ---- TABS ----
+function switchTab(id){
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelector(`[data-t="${id}"]`).classList.add('on');
+  document.getElementById(id).classList.add('on');
+}
+
+document.querySelectorAll('.tb').forEach(b=>b.addEventListener('click',()=>{switchTab(b.dataset.t);}));
+
+// ---- INIT ----
+document.getElementById('appSub').textContent=`Today: ${now()} · ${ST.members.length} members`;
+populateWhoSelects();
+renderStats();
+renderMemberBars();
+renderHeatmap();
+renderDeliverables();
+renderAct();
+renderKanban();
+setMemberFilter('all');
+renderPhaseTl();
+renderRoadmap();
+renderLog();
+renderSettingsMembers();
+</script>
