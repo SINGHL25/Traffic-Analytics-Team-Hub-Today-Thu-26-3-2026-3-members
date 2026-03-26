@@ -1,5 +1,6 @@
 # Traffic-Analytics-Team-Hub-Today-Thu-26-3-2026-3-members
 Traffic Analytics — Team Hub Today: Thu, 26/3/2026 · 3 members
+```
 Member management (fully CRUD)
 
 "Add member" creates a permanent member with custom name, initials, avatar colour picker (6 colour schemes), starting phase, starting week, and a note/role field
@@ -41,3 +42,4 @@ Settings
 
 Edit program title, team name, GitHub URL, start date
 Full member list with Edit/Delete buttons that trigger the same modals
+```
